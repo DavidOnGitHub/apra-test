@@ -1,26 +1,39 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import PhotoList from './components/PhotoList';
+import { ApolloProvider } from '@apollo/client';
+import { Container, Main, Header } from './App.styles';
+import { ApolloClient, InMemoryCache } from '@apollo/client';
+import { apiEndpoint } from './configs/appConfig';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const client = new ApolloClient({
+  uri: apiEndpoint,
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          photos: {
+            keyArgs: false,
+            merge(existing = { data: [] }, incoming) {
+              return Object.assign({}, incoming, {
+                data: [...existing.data, ...incoming.data],
+              });
+            },
+          },
+        },
+      },
+    },
+  }),
+});
+
+const App = () => (
+  <ApolloProvider client={client}>
+    <Container>
+      <Header>Photo List</Header>
+      <Main>
+        <PhotoList />
+      </Main>
+    </Container>
+  </ApolloProvider>
+);
 
 export default App;
